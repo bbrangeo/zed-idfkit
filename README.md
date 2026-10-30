@@ -1,3 +1,34 @@
+# idfkit — Zed extension for the IDF language (EnergyPlus)
+
+Zed extension providing IDF / epJSON language support via the **idfkit-lsp
+model-server** language server (`--stdio`).
+
+> English summary — full documentation below (French).
+
+## Install (English)
+
+Requirements: [Zed](https://zed.dev), Node.js >= 18, and Rust with
+`wasm32-wasip2` (`rustup target add wasm32-wasip2`) to compile the extension.
+
+```sh
+git clone https://github.com/bbrangeo/zed-idfkit
+cd zed-idfkit
+./install.sh
+```
+
+`install.sh` clones the [idfkit-lsp](https://github.com/idfkit/idfkit-lsp)
+sources, builds the model-server, and installs it into
+`~/.local/share/idfkit-lsp/model-server/dist/`. The script is idempotent.
+
+Then in Zed: **Extensions → Install Dev Extension**, and select the
+`zed-idfkit` directory. Opening an `.idf` / `.epJSON` file starts the language
+server automatically (hover, completion, diagnostics, semantic highlighting).
+
+The model-server entry is resolved in this order: `$IDFKIT_LSP_HOME`,
+`$XDG_DATA_HOME/idfkit-lsp`, `~/.local/share/idfkit-lsp`, `~/idfkit-lsp`.
+
+---
+
 # idfkit — extension Zed pour le langage IDF (EnergyPlus)
 
 Extension [Zed](https://zed.dev) fournissant le support du langage IDF / epJSON

@@ -2,16 +2,16 @@ use std::path::Path;
 
 use zed_extension_api as zed;
 
-/// Dépôt du language server idfkit-lsp (contient le model-server).
+/// The idfkit-lsp language server repository (contains the model-server).
 const IDFKIT_LSP_REPO: &str = "https://github.com/idfkit/idfkit-lsp";
 
-/// Fallbacks usuels pour node si absent du `$PATH` transmis par Zed.
+/// Usual node fallbacks when missing from the `$PATH` Zed passes through.
 const NODE_FALLBACKS: &[&str] = &["/opt/homebrew/bin/node", "/usr/local/bin/node"];
 
 struct IdfkitExtension;
 
-/// Construit une vue clé/valeur de l'environnement shell courant
-/// (Zed transmet l'env du shell utilisateur au worktree).
+/// Builds a key/value view of the current shell environment
+/// (Zed passes the user's shell env to the worktree).
 fn shell_env_map(worktree: &zed::Worktree) -> impl Iterator<Item = (String, String)> {
     worktree.shell_env().into_iter()
 }
@@ -23,12 +23,12 @@ fn env_lookup(worktree: &zed::Worktree, key: &str) -> Option<String> {
         .filter(|v| !v.trim().is_empty())
 }
 
-/// Résout le point d'entrée du model-server idfkit-lsp :
+/// Resolves the idfkit-lsp model-server entry point:
 /// `<home>/model-server/dist/main.js`.
 ///
-/// Ordre de recherche :
-/// 1. variable d'environnement `IDFKIT_LSP_HOME`
-/// 2. `$XDG_DATA_HOME/idfkit-lsp`, puis `~/.local/share/idfkit-lsp`
+/// Search order:
+/// 1. the `IDFKIT_LSP_HOME` environment variable
+/// 2. `$XDG_DATA_HOME/idfkit-lsp`, then `~/.local/share/idfkit-lsp`
 /// 3. `~/idfkit-lsp`
 fn resolve_model_server_entry(worktree: &zed::Worktree) -> Option<String> {
     let mut candidates: Vec<String> = Vec::new();
@@ -52,10 +52,10 @@ fn resolve_model_server_entry(worktree: &zed::Worktree) -> Option<String> {
         .find(|entry| Path::new(entry).exists())
 }
 
-/// Résout le binaire `node` :
-/// 1. `$PATH` transmis par Zed (via `Worktree::which`)
-/// 2. fallbacks macOS/Linux usuels
-/// 3. nom simple `node` (délegué au PATH du processus hôte)
+/// Resolves the `node` binary:
+/// 1. the `$PATH` Zed passes through (via `Worktree::which`)
+/// 2. usual macOS/Linux fallbacks
+/// 3. the bare name `node` (delegated to the host process's PATH)
 fn resolve_node(worktree: &zed::Worktree) -> String {
     if let Some(node) = worktree.which("node") {
         return node;
@@ -70,15 +70,15 @@ fn resolve_node(worktree: &zed::Worktree) -> String {
 
 fn install_error() -> String {
     format!(
-        "idfkit: language server idfkit-lsp introuvable \
-(model-server/dist/main.js non trouvé dans $IDFKIT_LSP_HOME, \
-$XDG_DATA_HOME/idfkit-lsp, ~/.local/share/idfkit-lsp ou ~/idfkit-lsp).\n\n\
-Installez-le avec :\n  \
+        "idfkit: the idfkit-lsp language server was not found \
+(model-server/dist/main.js not found in $IDFKIT_LSP_HOME, \
+$XDG_DATA_HOME/idfkit-lsp, ~/.local/share/idfkit-lsp, or ~/idfkit-lsp).\n\n\
+Install it with:\n  \
 git clone {IDFKIT_LSP_REPO} && cd idfkit-lsp/model-server && npm ci && npm run build \
 && mkdir -p ~/.local/share/idfkit-lsp/model-server \
 && cp -R dist ~/.local/share/idfkit-lsp/model-server/dist\n\n\
-Ou avec l'install.sh de l'extension (https://github.com/bbrangeo/zed-idfkit).\n\n\
-Puis rechargez Zed (cmd-shift-P → \"workspace: reload\")."
+Or use the extension's install.sh (https://github.com/bbrangeo/zed-idfkit).\n\n\
+Then reload Zed (cmd-shift-P → \"workspace: reload\")."
     )
 }
 
