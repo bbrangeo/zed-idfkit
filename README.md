@@ -125,6 +125,27 @@ The grammar is **not committed** to this repository (the Zed extension builder
 downloads it from its own repository); a local git clone is only needed for dev
 extension installs.
 
+## Upcoming changes
+
+The current install flow (`install.sh` + wrapper + Node fallbacks) is
+**temporary**. The idfkit model server has never been published as a package
+(it's `private` in `model-server/package.json` and only ships inside the VS
+Code extension), which is why the install script clones `main` and builds from
+source.
+
+Once the model server is [published to npm with a `bin`
+entry](https://github.com/idfkit/idfkit-lsp/issues/32) (tracking issue on the
+idfkit side), this extension will switch to:
+
+- `zed::npm_install_package("...")` — version-pinned install managed by Zed,
+  replacing `install.sh`, the wrapper script and the cloned sources;
+- `zed::node_binary_path()` — Zed's own bundled Node, replacing the `PATH`
+  lookup and the `/opt/homebrew/bin/node` / `/usr/local/bin/node` fallbacks.
+
+The extension version will then track the server version directly. This
+repository will be updated (and the extension re-released) as soon as the npm
+package is available.
+
 ## Sibling MCP extension
 
 An optional Model Context Protocol extension exposing `idfkit-mcp`
