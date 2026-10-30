@@ -17,15 +17,26 @@ cd zed-idfkit
 ```
 
 `install.sh` clones the [idfkit-lsp](https://github.com/idfkit/idfkit-lsp)
-sources, builds the model-server, and installs it into
-`~/.local/share/idfkit-lsp/model-server/dist/`. The script is idempotent.
+sources, builds the model-server, installs it into
+`~/.local/share/idfkit-lsp/model-server/dist/`, and creates an executable
+`idfkit-lsp` wrapper in `~/.local/bin` (overridable with `IDFKIT_LSP_BIN`).
+The script is idempotent.
+
+The wrapper embeds the absolute path to `dist/main.js` and to `node`. The
+extension finds the language server through the user's `PATH` via
+`Worktree::which` — Zed extensions run as WASM and only see the worktree, so
+they cannot stat absolute paths themselves. Make sure `~/.local/bin` is in
+your `PATH` (most shells include it by default).
 
 Then in Zed: **Extensions → Install Dev Extension**, and select the
 `zed-idfkit` directory. Opening an `.idf` / `.epJSON` file starts the language
 server automatically (hover, completion, diagnostics, semantic highlighting).
 
-The model-server entry is resolved in this order: `$IDFKIT_LSP_HOME`,
-`$XDG_DATA_HOME/idfkit-lsp`, `~/.local/share/idfkit-lsp`, `~/idfkit-lsp`.
+The model-server data directory is resolved in this order: `$IDFKIT_LSP_HOME`,
+`$XDG_DATA_HOME/idfkit-lsp`, `~/.local/share/idfkit-lsp`. If no wrapper is
+found on the `PATH`, the extension falls back to launching `node` directly on
+`<data home>/model-server/dist/main.js` (no existence check — a missing file
+shows a clear `ERR_MODULE_NOT_FOUND` in Zed's LSP log).
 
 ---
 
@@ -57,33 +68,50 @@ cd zed-idfkit
 2. clone les sources de [idfkit-lsp](https://github.com/idfkit/idfkit-lsp)
    dans `~/.local/share/idfkit-lsp/src` ;
 3. build le model-server (`npm ci && npm run build`) ;
-4. installe le résultat dans `~/.local/share/idfkit-lsp/model-server/dist/`.
+4. installe le résultat dans `~/.local/share/idfkit-lsp/model-server/dist/`
+   (+ `capabilities.json` et `node_modules` à côté, requis par le
+   model-server au démarrage) ;
+5. crée un wrapper exécutable `idfkit-lsp` dans `~/.local/bin`
+   (surchargable avec `IDFKIT_LSP_BIN`).
 
-Le script est **idempotent** : relançable sans risque.
+Le script est **idempotent** : relançable sans risque (wrapper et destination
+écrasés à chaque exécution).
+
+Le wrapper embarque le chemin absolu de `dist/main.js` et de `node`.
+L'extension trouve le language server via le `PATH` de l'utilisateur
+(`Worktree::which`) — les extensions Zed tournent en WASM et ne voient que le
+worktree, elles ne peuvent pas tester l'existence de chemins absolus.
+Vérifiez que `~/.local/bin` est dans votre `PATH` (la plupart des shells
+l'incluent par défaut ; le script logue un avertissement sinon).
 
 Ensuite, dans Zed : **Extensions → Install Dev Extension** (cmd-shift-P →
 `extensions: install dev extension`) et sélectionnez le répertoire
 `zed-idfkit-extension`.
 
-Au premier fichier `.idf` / `.epJSON` ouvert, l'extension résout
-automatiquement le model-server et le lance avec `node … --stdio`.
+Au premier fichier `.idf` / `.epJSON` ouvert, l'extension lance
+automatiquement le language server.
 
-### Répertoires de recherche du model-server
+### Résolution du language server
 
 Dans l'ordre :
 
-1. `$IDFKIT_LSP_HOME/model-server/dist/main.js`
-2. `$XDG_DATA_HOME/idfkit-lsp/model-server/dist/main.js`
-3. `~/.local/share/idfkit-lsp/model-server/dist/main.js`
-4. `~/idfkit-lsp/model-server/dist/main.js`
+1. `worktree.which("idfkit-lsp")` — le wrapper créé par `install.sh`
+   (`~/.local/bin/idfkit-lsp`), qui embarque déjà `--stdio` ;
+2. repli : `node <répertoire de données>/model-server/dist/main.js --stdio`,
+   où le répertoire de données est résolu ainsi : `$IDFKIT_LSP_HOME` >
+   `$XDG_DATA_HOME/idfkit-lsp` > `~/.local/share/idfkit-lsp`. Aucune
+   vérification d'existence : si le fichier est absent, node affiche un
+   `ERR_MODULE_NOT_FOUND` clair dans le log LSP de Zed.
 
 ## Dépannage
 
 ### Erreur « language server idfkit-lsp introuvable »
 
-Le model-server n'est pas installé. Lancez `./install.sh` puis rechargez
-Zed (`workspace: reload`). Vous pouvez surcharger l'emplacement avec
-`IDFKIT_LSP_HOME`.
+Le wrapper n'est pas sur le `PATH` ou `install.sh` n'a pas été lancé. Lancez
+`./install.sh` puis rechargez Zed (`workspace: reload`). Vérifiez que
+`~/.local/bin` est dans le `PATH` (`which idfkit-lsp`). Vous pouvez
+surcharger l'emplacement des données avec `IDFKIT_LSP_HOME` et celui du
+wrapper avec `IDFKIT_LSP_BIN`.
 
 ### Erreur rustc / wasm32-wasip2 au build
 

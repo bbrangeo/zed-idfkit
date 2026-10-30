@@ -1,9 +1,4 @@
-use std::path::Path;
-
 use zed_extension_api as zed;
-
-/// The idfkit-lsp language server repository (contains the model-server).
-const IDFKIT_LSP_REPO: &str = "https://github.com/idfkit/idfkit-lsp";
 
 /// Usual node fallbacks when missing from the `$PATH` Zed passes through.
 const NODE_FALLBACKS: &[&str] = &["/opt/homebrew/bin/node", "/usr/local/bin/node"];
@@ -23,63 +18,73 @@ fn env_lookup(worktree: &zed::Worktree, key: &str) -> Option<String> {
         .filter(|v| !v.trim().is_empty())
 }
 
-/// Resolves the idfkit-lsp model-server entry point:
-/// `<home>/model-server/dist/main.js`.
+/// Resolves the model-server data home (NOT the entry point itself):
 ///
-/// Search order:
 /// 1. the `IDFKIT_LSP_HOME` environment variable
 /// 2. `$XDG_DATA_HOME/idfkit-lsp`, then `~/.local/share/idfkit-lsp`
-/// 3. `~/idfkit-lsp`
-fn resolve_model_server_entry(worktree: &zed::Worktree) -> Option<String> {
-    let mut candidates: Vec<String> = Vec::new();
-
+///
+/// The entry point is `<home>/model-server/dist/main.js`. No filesystem
+/// check is performed here: Zed extensions run as WASM (wasip2) and only
+/// see the worktree, so `Path::exists()` on absolute paths would always
+/// return false. If the file is missing, `node` will log a clear
+/// `ERR_MODULE_NOT_FOUND` in Zed's LSP log instead.
+fn resolve_model_server_home(worktree: &zed::Worktree) -> String {
     if let Some(home) = env_lookup(worktree, "IDFKIT_LSP_HOME") {
-        candidates.push(home);
+        return home;
     }
-
-    let user_home = env_lookup(worktree, "HOME");
     if let Some(xdg) = env_lookup(worktree, "XDG_DATA_HOME") {
-        candidates.push(format!("{xdg}/idfkit-lsp"));
+        return format!("{xdg}/idfkit-lsp");
     }
-    if let Some(home) = &user_home {
-        candidates.push(format!("{home}/.local/share/idfkit-lsp"));
-        candidates.push(format!("{home}/idfkit-lsp"));
+    match env_lookup(worktree, "HOME") {
+        Some(home) => format!("{home}/.local/share/idfkit-lsp"),
+        // No env at all: fall back to the conventional location.
+        None => "/home/user/.local/share/idfkit-lsp".to_string(),
     }
-
-    candidates
-        .into_iter()
-        .map(|base| format!("{base}/model-server/dist/main.js"))
-        .find(|entry| Path::new(entry).exists())
 }
 
 /// Resolves the `node` binary:
-/// 1. the `$PATH` Zed passes through (via `Worktree::which`)
-/// 2. usual macOS/Linux fallbacks
+/// 1. the `$PATH` Zed passes through (via `Worktree::which`, a host-side
+///    WIT method that works in WASM)
+/// 2. usual macOS/Linux fallback paths (no existence check, kept in order)
 /// 3. the bare name `node` (delegated to the host process's PATH)
 fn resolve_node(worktree: &zed::Worktree) -> String {
     if let Some(node) = worktree.which("node") {
         return node;
     }
-    for candidate in NODE_FALLBACKS {
-        if Path::new(candidate).exists() {
-            return (*candidate).to_string();
-        }
+    match NODE_FALLBACKS.first() {
+        Some(first) => (*first).to_string(),
+        None => "node".to_string(),
     }
-    "node".to_string()
 }
 
-fn install_error() -> String {
-    format!(
-        "idfkit: the idfkit-lsp language server was not found \
-(model-server/dist/main.js not found in $IDFKIT_LSP_HOME, \
-$XDG_DATA_HOME/idfkit-lsp, ~/.local/share/idfkit-lsp, or ~/idfkit-lsp).\n\n\
-Install it with:\n  \
-git clone {IDFKIT_LSP_REPO} && cd idfkit-lsp/model-server && npm ci && npm run build \
-&& mkdir -p ~/.local/share/idfkit-lsp/model-server \
-&& cp -R dist ~/.local/share/idfkit-lsp/model-server/dist\n\n\
-Or use the extension's install.sh (https://github.com/bbrangeo/zed-idfkit).\n\n\
-Then reload Zed (cmd-shift-P → \"workspace: reload\")."
-    )
+/// Resolves the language server command for Zed. Always succeeds:
+///
+/// 1. `worktree.which("idfkit-lsp")` — the wrapper created by `install.sh`
+///    (`~/.local/bin/idfkit-lsp`) is preferred; it already embeds the
+///    absolute path to `model-server/dist/main.js` and the `--stdio` flag.
+/// 2. Otherwise, run the model-server directly with node from the default
+///    data home (`$IDFKIT_LSP_HOME` > `$XDG_DATA_HOME/idfkit-lsp` >
+///    `~/.local/share/idfkit-lsp`), without any existence check.
+fn resolve_server_command(worktree: &zed::Worktree) -> zed::Command {
+    // 1. Wrapper on the user's PATH (created by install.sh).
+    if let Some(wrapper) = worktree.which("idfkit-lsp") {
+        return zed::Command {
+            command: wrapper,
+            args: vec![],
+            env: vec![],
+        };
+    }
+
+    // 2. Fallback: direct node invocation, no existence check.
+    let home = resolve_model_server_home(worktree);
+    let entry = format!("{home}/model-server/dist/main.js");
+    let node = resolve_node(worktree);
+
+    zed::Command {
+        command: node,
+        args: vec![entry, "--stdio".to_string()],
+        env: vec![],
+    }
 }
 
 impl zed::Extension for IdfkitExtension {
@@ -92,15 +97,7 @@ impl zed::Extension for IdfkitExtension {
         _language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<zed::Command> {
-        let model_server =
-            resolve_model_server_entry(worktree).ok_or_else(install_error)?;
-        let node = resolve_node(worktree);
-
-        Ok(zed::Command {
-            command: node,
-            args: vec![model_server, "--stdio".to_string()],
-            env: vec![],
-        })
+        Ok(resolve_server_command(worktree))
     }
 }
 
