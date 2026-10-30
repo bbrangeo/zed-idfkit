@@ -3,7 +3,20 @@
 /extension.wasm
 extension.wasm
 
+# Tree-sitter build artifacts (parser.c généré DOIT rester — Zed le
+# recompile lui-même ; seuls les artefacts de build sont ignorés).
+grammars/idf/build/
+grammars/idf/target/
+grammars/idf/*.wasm
+grammars/idf/src/tree_sitter/*.a
+grammars/idf/src/tree_sitter/*.o
+
 # Fix rustc machine-spécifique (nécessaire en local uniquement :
 # mismatch shim cargo rustup vs rustc Homebrew sans wasm32-wasip2).
 # Les contributeurs tiers utilisent rustup standard (wasm32-wasip2 inclus).
 .cargo/config.toml
+
+# Grammar dir: NOT committed — the Zed extension builder downloads it
+# from [grammars.idf] repository/rev (git init + fetch + checkout).
+# Keep a local git clone only for dev extension installs.
+/grammars/idf/
