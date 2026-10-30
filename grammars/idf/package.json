@@ -1,0 +1,21 @@
+{
+  "name": "tree-sitter-idf",
+  "version": "0.1.0",
+  "description": "Tree-sitter grammar for EnergyPlus IDF files",
+  "main": "bindings/node",
+  "keywords": [
+    "parser",
+    "tree-sitter",
+    "idf",
+    "energyplus"
+  ],
+  "license": "MIT",
+  "tree-sitter": [
+    {
+      "scope": "source.idf",
+      "file-types": [
+        "idf"
+      ]
+    }
+  ]
+}

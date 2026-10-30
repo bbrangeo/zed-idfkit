@@ -1,3 +1,4 @@
 name = "IDF"
+grammar = "idf"
 path_suffixes = ["idf", "epJSON"]
 line_comments = ["! "]

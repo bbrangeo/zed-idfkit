@@ -1,10 +1,13 @@
 id = "idfkit"
 name = "idfkit"
-version = "0.1.0"
+version = "0.1.1"
 schema_version = 1
 authors = ["Boris <boris@tipee.fr>"]
 description = "EnergyPlus IDF language support via idfkit-lsp model-server"
 repository = "https://github.com/bbrangeo/zed-idfkit"
+
+[grammars.idf]
+path = "grammars/idf"
 
 [language_servers.idfkit-model]
 name = "idfkit model server"

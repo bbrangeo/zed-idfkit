@@ -12,6 +12,9 @@ The language server (idfkit-lsp model-server v0.3.0) provides:
 - **Hover** — documentation on hover
 - **Signature help** — parameter hints
 - **Versions** — served via the idfkit-lsp `versions` capability
+- **Syntax highlighting** — custom Tree-sitter grammar for IDF (`grammars/idf/`),
+  with colors for object types, numbers, keyword values (`Yes`, `Autosize`, ...),
+  field values and `!-` comments
 
 Automatic `.idf` / `.epJSON` file detection: opening such a file in Zed starts
 the language server automatically.
