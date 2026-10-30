@@ -1,0 +1,8 @@
+# Artefacts de build (spécifiques à la machine / régénérables)
+/target/
+extension.wasm
+
+# Fix rustc machine-spécifique (nécessaire en local uniquement :
+# mismatch shim cargo rustup vs rustc Homebrew sans wasm32-wasip2).
+# Les contributeurs tiers utilisent rustup standard (wasm32-wasip2 inclus).
+.cargo/config.toml
