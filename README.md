@@ -111,6 +111,15 @@ themselves. The extension therefore resolves the server in this order:
    home (`$IDFKIT_LSP_HOME` > `$XDG_DATA_HOME/idfkit-lsp` >
    `~/.local/share/idfkit-lsp`).
 
+## Platform support
+
+- **macOS / Linux** — fully supported, as described above.
+- **Windows** — the current install flow is POSIX-only (`install.sh`,
+  the `/bin/sh`-based wrapper). It will be supported together with the
+  npm-based install (see [Upcoming changes](#upcoming-changes)): the
+  extension will switch to `zed::npm_install_package` +
+  `zed::node_binary_path()`, which works on all platforms Zed supports.
+
 ## Local development
 
 ```sh
