@@ -9,7 +9,7 @@ repository = "https://github.com/bbrangeo/zed-idfkit"
 [grammars.idf]
 path = "grammars/idf"
 rev = "main"
-repository = "https://github.com/bbrangeo/tree-sitter-idf"
+repository = "https://github.com/bbrangeo/tree-sitter-idf.git"
 
 [language_servers.idfkit-model]
 name = "idfkit model server"
