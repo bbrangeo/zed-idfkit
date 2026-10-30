@@ -23,7 +23,7 @@ cd zed-idfkit
 
 `install.sh` :
 1. vérifie que `node >= 18` est disponible (échoue avec un message clair sinon) ;
-2. clone les sources de [idfkit-lsp](https://github.com/bbrangeo/idfkit-lsp)
+2. clone les sources de [idfkit-lsp](https://github.com/idfkit/idfkit-lsp)
    dans `~/.local/share/idfkit-lsp/src` ;
 3. build le model-server (`npm ci && npm run build`) ;
 4. installe le résultat dans `~/.local/share/idfkit-lsp/model-server/dist/`.

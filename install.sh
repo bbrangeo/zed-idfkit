@@ -4,7 +4,7 @@
 #
 # Ce script :
 #   1. vérifie que node >= 18 est disponible ;
-#   2. clone https://github.com/bbrangeo/idfkit-lsp si nécessaire ;
+#   2. clone https://github.com/idfkit/idfkit-lsp si nécessaire ;
 #   3. build le model-server (npm ci && npm run build) ;
 #   4. copie le résultat dans ~/.local/share/idfkit-lsp/model-server/dist/.
 #
@@ -12,7 +12,7 @@
 # la destination est écrasée).
 set -euo pipefail
 
-IDFKIT_LSP_REPO="https://github.com/bbrangeo/idfkit-lsp"
+IDFKIT_LSP_REPO="https://github.com/idfkit/idfkit-lsp"
 IDFKIT_LSP_SRC="${IDFKIT_LSP_SRC:-$HOME/.local/share/idfkit-lsp/src}"
 IDFKIT_LSP_DEST="${IDFKIT_LSP_HOME:-$HOME/.local/share/idfkit-lsp}"
 

@@ -2,8 +2,8 @@ use std::path::Path;
 
 use zed_extension_api as zed;
 
-/// Dépôt de l'extension (contient `install.sh`, qui installe idfkit-lsp).
-const EXTENSION_REPO: &str = "https://github.com/bbrangeo/zed-idfkit";
+/// Dépôt du language server idfkit-lsp (contient le model-server).
+const IDFKIT_LSP_REPO: &str = "https://github.com/idfkit/idfkit-lsp";
 
 /// Fallbacks usuels pour node si absent du `$PATH` transmis par Zed.
 const NODE_FALLBACKS: &[&str] = &["/opt/homebrew/bin/node", "/usr/local/bin/node"];
@@ -74,7 +74,10 @@ fn install_error() -> String {
 (model-server/dist/main.js non trouvé dans $IDFKIT_LSP_HOME, \
 $XDG_DATA_HOME/idfkit-lsp, ~/.local/share/idfkit-lsp ou ~/idfkit-lsp).\n\n\
 Installez-le avec :\n  \
-git clone {EXTENSION_REPO} && cd zed-idfkit && ./install.sh\n\n\
+git clone {IDFKIT_LSP_REPO} && cd idfkit-lsp/model-server && npm ci && npm run build \
+&& mkdir -p ~/.local/share/idfkit-lsp/model-server \
+&& cp -R dist ~/.local/share/idfkit-lsp/model-server/dist\n\n\
+Ou avec l'install.sh de l'extension (https://github.com/bbrangeo/zed-idfkit).\n\n\
 Puis rechargez Zed (cmd-shift-P → \"workspace: reload\")."
     )
 }
