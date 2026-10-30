@@ -24,34 +24,101 @@ the language server automatically.
 
 ## Installation
 
-Install from Zed's extensions page (search for **idfkit**).
+### 1. Install the extension
 
-For local development: clone this repository, then run the Zed command
-`zed: install dev extension` and select the `zed-idfkit-extension` directory.
+In Zed: open the extensions page (`cmd-shift-x`), search for **idfkit**, and
+click **Install**.
 
-Requirements: Node.js >= 18 in your `PATH`. The language server itself is
-installed by `install.sh` (see below).
+> Not yet published to the registry? Install it as a dev extension: clone this
+> repository, run the Zed command `zed: install dev extension`, and select the
+> `zed-idfkit-extension/` directory.
 
-## Language Server
+### 2. Install the language server (one-time, required)
 
-`install.sh` builds the idfkit-lsp model-server from source and creates an
-executable wrapper `~/.local/bin/idfkit-lsp`. The wrapper embeds the absolute
-path to `model-server/dist/main.js` and runs it with `--stdio`.
+The extension only knows how to *start* the language server — the server
+itself must be installed on your machine. Run:
 
-The extension resolves the language server in this order:
+```sh
+curl -fsSL https://raw.githubusercontent.com/bbrangeo/zed-idfkit/main/install.sh | bash
+```
+
+or, if you cloned this repository:
+
+```sh
+cd zed-idfkit-extension
+./install.sh
+```
+
+What it does (idempotent — safe to re-run):
+
+1. checks that Node.js >= 18 is in your `PATH`
+2. clones [idfkit/idfkit-lsp](https://github.com/idfkit/idfkit-lsp) into
+   `~/.local/share/idfkit-lsp/src`
+3. builds the model-server (`npm ci && npm run build`)
+4. installs it into `~/.local/share/idfkit-lsp/model-server/dist/`
+5. creates an `~/.local/bin/idfkit-lsp` wrapper (on your `PATH`) that the
+   extension finds via `Worktree::which`
+
+### 3. Reload Zed
+
+`cmd-shift-p` → `workspace: reload`. Open an `.idf` file — the language server
+starts automatically and syntax highlighting is applied.
+
+### Verify
+
+- `cmd-shift-p` → `editor: restart language server` / check the LSP logs
+- `~/.local/bin/idfkit-lsp` should exist and be executable
+
+### Troubleshooting
+
+**"the idfkit-lsp language server was not found"** — the model-server is not
+installed: run `install.sh` (step 2 above), then reload Zed.
+
+**No syntax highlighting** — make sure the file is detected as IDF (bottom bar
+shows `IDF`). If it shows plain text, close and reopen the file after the
+extension is installed.
+
+**`node` not found by Zed** — the extension looks for `node` via the user's
+`PATH`, with fallbacks to `/opt/homebrew/bin/node` and `/usr/local/bin/node`.
+Install Node.js >= 18 (<https://nodejs.org>).
+
+**Custom install location** — set `IDFKIT_LSP_HOME` before installing, and the
+extension picks it up automatically (resolution order: `$IDFKIT_LSP_HOME` >
+`$XDG_DATA_HOME/idfkit-lsp` > `~/.local/share/idfkit-lsp`).
+
+### Uninstall
+
+```sh
+./uninstall.sh          # removes the wrapper + installed model-server
+./uninstall.sh --purge  # also removes cloned sources and the idfkit-lsp home
+```
+
+Then remove the extension from Zed's extensions page.
+
+## How the extension resolves the language server
+
+Zed extensions run as WASM components and cannot stat absolute paths
+themselves. The extension therefore resolves the server in this order:
 
 1. `worktree.which("idfkit-lsp")` — the wrapper created by `install.sh`
-   (Zed extensions run as WASM and only see the worktree, so they cannot stat
-   absolute paths themselves; `Worktree::which` queries the user's `PATH` on
-   the host side);
+   (`Worktree::which` queries the user's `PATH` on the host side);
 2. fallback: run the model-server directly with `node` from the default data
    home (`$IDFKIT_LSP_HOME` > `$XDG_DATA_HOME/idfkit-lsp` >
    `~/.local/share/idfkit-lsp`).
 
-`uninstall.sh` removes the wrapper and the installed model-server
-(`--purge` also removes the cloned sources and the whole idfkit-lsp home).
-The `IDFKIT_LSP_HOME` environment variable overrides the model-server data
-directory.
+## Local development
+
+```sh
+git clone https://github.com/bbrangeo/zed-idfkit
+cd zed-idfkit/zed-idfkit-extension
+git clone https://github.com/bbrangeo/tree-sitter-idf grammars/idf  # grammar clone required for dev installs
+```
+
+Then: `zed: install dev extension` → select `zed-idfkit-extension/`.
+
+The grammar is **not committed** to this repository (the Zed extension builder
+downloads it from its own repository); a local git clone is only needed for dev
+extension installs.
 
 ## Sibling MCP extension
 
