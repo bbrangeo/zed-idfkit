@@ -3,6 +3,18 @@ use zed_extension_api as zed;
 /// Usual node fallbacks when missing from the `$PATH` Zed passes through.
 const NODE_FALLBACKS: &[&str] = &["/opt/homebrew/bin/node", "/usr/local/bin/node"];
 
+/// The only language server this extension serves (see `extension.toml`).
+const LANGUAGE_SERVER_ID: &str = "idfkit-model";
+
+fn validate_language_server_id(language_server_id: &zed::LanguageServerId) -> zed::Result<()> {
+    if language_server_id.as_ref() == LANGUAGE_SERVER_ID {
+        return Ok(());
+    }
+    Err(format!(
+        "unrecognized language server for the idfkit extension: {language_server_id}"
+    ))
+}
+
 struct IdfkitExtension;
 
 /// Builds a key/value view of the current shell environment
@@ -94,9 +106,10 @@ impl zed::Extension for IdfkitExtension {
 
     fn language_server_command(
         &mut self,
-        _language_server_id: &zed::LanguageServerId,
+        language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<zed::Command> {
+        validate_language_server_id(language_server_id)?;
         Ok(resolve_server_command(worktree))
     }
 }
