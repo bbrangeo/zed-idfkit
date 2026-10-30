@@ -1,5 +1,5 @@
 id = "idfkit"
-name = "idfkit"
+name = "IDF"
 version = "0.1.1"
 schema_version = 1
 authors = ["Boris <boris@tipee.fr>"]
