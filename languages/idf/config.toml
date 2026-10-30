@@ -1,4 +1,4 @@
 name = "IDF"
 grammar = "idf"
-path_suffixes = ["idf", "epJSON"]
+path_suffixes = ["idf"]
 line_comments = ["! "]

@@ -17,4 +17,3 @@ languages = ["IDF"]
 
 [language_servers.idfkit-model.language_ids]
 "IDF" = "idf"
-"epJSON" = "epjson"

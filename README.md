@@ -10,17 +10,22 @@ The language server (idfkit-lsp model-server v0.3.0) provides:
 
 - **Completion** — auto-completion for IDF objects and fields
 - **Hover** — documentation on hover
-- **Signature help** — parameter hints
+- **Diagnostics** — inline errors and warnings
+- **Semantic tokens** — theme-aware token highlighting
+- **Go-to-definition** — jump between referenced IDF objects
 - **Versions** — served via the idfkit-lsp `versions` capability
 - **Syntax highlighting** — custom Tree-sitter grammar for IDF (`grammars/idf/`),
   with colors for object types, numbers, keyword values (`Yes`, `Autosize`, ...),
   field values and `!-` comments
 
-Automatic `.idf` / `.epJSON` file detection: opening such a file in Zed starts
-the language server automatically.
+Automatic `.idf` file detection: opening such a file in Zed starts the
+language server automatically.
 
-> Note: diagnostics and semantic tokens are **not** provided by the
-> model-server — they are not part of its capability set.
+> Note: signature help is **not** provided by the model-server — it is
+> `absent_permanent` for model text. `.epJSON` files are left to Zed's
+> built-in JSON support. See `capabilities.json` in the
+> [idfkit-lsp repository](https://github.com/idfkit/idfkit-lsp) for the
+> authoritative capability list.
 
 ## Installation
 
@@ -122,6 +127,7 @@ extension installs.
 
 ## Sibling MCP extension
 
-An optional Model Context Protocol extension exposing idfkit-lsp to Zed's
-agent is available at
+An optional Model Context Protocol extension exposing `idfkit-mcp`
+(EnergyPlus modeling tools: build, validate, simulate) to Zed's agent is
+available at
 [bbrangeo/zed-idfkit-mcp](https://github.com/bbrangeo/zed-idfkit-mcp).
