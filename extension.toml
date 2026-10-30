@@ -8,6 +8,7 @@ repository = "https://github.com/bbrangeo/zed-idfkit"
 
 [grammars.idf]
 path = "grammars/idf"
+repository = "https://github.com/bbrangeo/zed-idfkit"
 
 [language_servers.idfkit-model]
 name = "idfkit model server"
